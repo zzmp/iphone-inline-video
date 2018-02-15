@@ -29,8 +29,8 @@ function intervalometer(cb, request, cancel, requestParameter) {
 	};
 }
 
-function frameIntervalometer(cb) {
-	return intervalometer(cb, requestAnimationFrame, cancelAnimationFrame);
+function timerIntervalometer(cb, delay) {
+	return intervalometer(cb, setTimeout, clearTimeout, delay);
 }
 
 function preventEvent(element, eventName, test) {
@@ -230,13 +230,13 @@ function pause(forceEvents) {
  * SETUP
  */
 
-function addPlayer(video, hasAudio) {
+function addPlayer(video, hasAudio, ms) {
 	var player = {};
 	video[IIV] = player;
 	player.paused = true; // Track whether 'pause' events have been fired
 	player.hasAudio = hasAudio;
 	player.video = video;
-	player.updater = frameIntervalometer(update.bind(player));
+	player.updater = timerIntervalometer(update.bind(player), ms);
 
 	if (hasAudio) {
 		player.driver = getAudioFromVideo(video);
@@ -347,7 +347,7 @@ function overloadAPI(video) {
 }
 
 function enableInlineVideo(video, opts) {
-	if ( opts === void 0 ) opts = {};
+	if ( opts === void 0 ) opts = {fps: 20};
 
 	// Stop if already enabled
 	if (video[IIV]) {
@@ -375,7 +375,8 @@ function enableInlineVideo(video, opts) {
 	var willAutoplay = video.autoplay;
 	video.autoplay = false;
 
-	addPlayer(video, !video.muted);
+	var fps = opts.fps || 20;
+	addPlayer(video, !video.muted, 1000 / fps);
 	overloadAPI(video);
 	video.classList.add('IIV');
 
@@ -391,6 +392,8 @@ function enableInlineVideo(video, opts) {
 	if (!/iPhone|iPod|iPad/.test(navigator.platform)) {
 		console.warn('iphone-inline-video is not guaranteed to work in emulated environments');
 	}
+
+	return true;
 }
 
 return enableInlineVideo;
