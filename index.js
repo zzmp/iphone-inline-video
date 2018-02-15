@@ -1,4 +1,4 @@
-import {frameIntervalometer} from 'intervalometer';
+import {timerIntervalometer} from 'intervalometer';
 import preventEvent from './lib/prevent-event';
 import proxyProperty from './lib/proxy-property';
 import proxyEvent from './lib/proxy-event';
@@ -161,13 +161,13 @@ function pause(forceEvents) {
  * SETUP
  */
 
-function addPlayer(video, hasAudio) {
+function addPlayer(video, hasAudio, ms) {
 	const player = {};
 	video[IIV] = player;
 	player.paused = true; // Track whether 'pause' events have been fired
 	player.hasAudio = hasAudio;
 	player.video = video;
-	player.updater = frameIntervalometer(update.bind(player));
+	player.updater = timerIntervalometer(update.bind(player), ms);
 
 	if (hasAudio) {
 		player.driver = getAudioFromVideo(video);
@@ -277,7 +277,7 @@ function overloadAPI(video) {
 	preventEvent(video, 'ended', preventWithPropOrFullscreen);
 }
 
-export default function enableInlineVideo(video, opts = {}) {
+export default function enableInlineVideo(video, opts = {fps: 20}) {
 	// Stop if already enabled
 	if (video[IIV]) {
 		return;
@@ -304,7 +304,8 @@ export default function enableInlineVideo(video, opts = {}) {
 	const willAutoplay = video.autoplay;
 	video.autoplay = false;
 
-	addPlayer(video, !video.muted);
+	const fps = opts.fps || 20;
+	addPlayer(video, !video.muted, 1000 / fps);
 	overloadAPI(video);
 	video.classList.add('IIV');
 
