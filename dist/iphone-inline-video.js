@@ -1,5 +1,5 @@
 /*! npm.im/iphone-inline-video 2.2.2 */
-var enableInlineVideo = (function () {
+module.exports = (function () {
 'use strict';
 
 /*! npm.im/intervalometer */
